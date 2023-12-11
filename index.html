@@ -29,7 +29,12 @@
   <hr>
   <h3>Response:</h3>
   <p>
-    <textarea id="response" cols="100" rows="10"></textarea>
+    <textarea id="response" cols="100" rows="5"></textarea>
+  </p>
+  <hr>
+  <h3>Text Input:</h3>
+  <p>
+    <textarea id="textInput" cols="100" rows="7"></textarea>
   </p>
   <hr>
   <h3>
@@ -51,6 +56,7 @@
     </select>
     <button id="clear_canvas">Clear</button>
     <button id="draw_pattern">Pattern</button>
+    <button id="write_text">Write Text</button>
     <button id="save_canvas">Save</button>
     <button id="print" class="on_connected">Print</button>
   </h3>
@@ -146,6 +152,7 @@
     document.getElementById('draw_pattern').addEventListener('click', async function() {
       const canvas = document.getElementById('canvas');
       const context = canvas.getContext("2d");
+
       const image = context.getImageData(0, 0, canvas.width, canvas.height);
 
       context.clearRect(0, 0, canvas.width, canvas.height);
@@ -163,6 +170,39 @@
       }
 
       context.putImageData(image, 0, 0);
+      
+
+    });
+    document.getElementById('write_text').addEventListener('click', async function() {
+      const canvas = document.getElementById('canvas');
+      const context = canvas.getContext("2d");
+
+      var inputText = document.getElementById("textInput").value;
+
+      context.font = "36px sans-serif";
+      context.textAlign = "centre"
+      context.fillText(inputText, 50, 60);
+
+
+      /* const image = context.getImageData(0, 0, canvas.width, canvas.height);
+
+      context.clearRect(0, 0, canvas.width, canvas.height);
+
+      var off = 0;
+
+      for (let y = 0; y < image.height; y++) {
+        for (let x = 0; x < image.width; x++, off += 4) {
+          var color = (Math.floor(x/16) % 2) ^ (Math.floor(y/16) % 2);
+          image.data[off] = color ? 255 : 0;
+          image.data[off + 1] = color ? 255 : 0;
+          image.data[off + 2] = color ? 255 : 0;
+          image.data[off + 3] = 255;
+        }
+      }
+
+      context.putImageData(image, 0, 0);
+      */
+
     });
     function canvasGetImageData(canvas, x, y, w, h, flipXY = false) {
       const context = canvas.getContext("2d");
@@ -225,6 +265,9 @@
 
         const canvas_label = document.getElementById('canvas_label');
         canvas_label.textContent = `${canvas.width}x${canvas.height}`;
+
+
+
       }
     });
   </script>
