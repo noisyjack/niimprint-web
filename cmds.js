@@ -27,6 +27,29 @@ const CMD_IMAGE_CLEAR = 132;
 const CMD_IMAGE_DATA = 133; // 0x85
 const CMD_IMAGE_RECEIVED = 0xD3; // ushort offset, byte last line
 
+
+var printJOBS = []
+
+function addPrintJob(data){
+  printJOBS.push(data)
+}
+
+async function checkQueueForNext(){
+  if (printJOBS.length == 0){
+    return
+  } else {
+    fromQueue = printJOBS.pop()
+    let width = fromQueue.width
+    let height = fromQueue.height
+    let data = fromQueue.data
+    console.log("breakpoint")
+    setAsyncResponse(niimbotPrintImage(width, height, data, 1, 1), "PRINT")
+    return
+  }
+}
+
+
+
 // Niimbot D11 has 203 DPI (https://www.niimbotlabel.com/products/niimbot-d11-label-maker)
 function niimbotMmToPx(x) {
     return Math.ceil(x / 25.4 * 203);
@@ -300,5 +323,6 @@ async function niimbotPrintImage(w, h, data, q = 1, type = 1, density = 2) {
     .then(_ => niimbotEndPagePrint())
     .then(_ => niimbotWaitForPrintComplete(q))
     .then(_ => niimbotEndPrint())
-    .then(_ => `Printed ${w}x${h}, ${q}q, ${type} type, ${density} density`);
+    .then(_ => `Printed ${w}x${h}, ${q}q, ${type} type, ${density} density`)
+    .then(_ => checkQueueForNext());
 }

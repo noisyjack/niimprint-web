@@ -59,8 +59,13 @@
     <button id="text_prev">  &lt;&lt; </button>
     <button id="write_text">Write Text</button>
     <button id="text_next">  &gt;&gt; </button>
+    <button disabled id="text_font">  Font Size </button>
+    <button id="text_font_up">  UP </button>
+    <button id="text_font_down">  DWN </button>
+    
     <button id="save_canvas">Save</button>
-    <button id="print" class="on_connected">Print</button>
+    <button id="print" class="on_connected">Print (Current)</button>
+    <button id="print_all" class="on_connected">Print (All)</button>
   </h3>
   <p>
     <canvas id="canvas" width="0" height="0" class="canvas"></canvas>
@@ -75,13 +80,17 @@
   </p>
   <hr>
   <p>
-    Kamil Trzciński (c) 2023,
+    With many thanks to Kamil Trzciński for his hard work
     <a href="https://github.com/ayufan/niimprint-web">github.com/ayufan/niimprint-web</a>.
-    Adopted from <a href="https://github.com/kjy00302/niimprint">github.com/kjy00302/niimprint</a></p>
+    And "kjy00302" <a href="https://github.com/kjy00302/niimprint">github.com/kjy00302/niimprint</a></p>
   <script>
     const canvasFlipXY = true;
+    const debugConnect = false;
 
     function updateConnected(deviceName = null) {
+
+      if (!debugConnect){
+      
       for (let el of document.getElementsByClassName("on_connected")) {
         el.disabled = !deviceName;
         if (!deviceName)
@@ -95,7 +104,8 @@
         deviceNameEl.textContent = deviceName ? toResponseString(deviceName) : 'Disconnected';
       }
     }
-
+    }
+    
     document.addEventListener("DOMContentLoaded", _ => updateConnected());
 
     function clearCanvas(){
@@ -124,6 +134,21 @@
       canvas_label.textContent = `${canvas.width}x${canvas.height}T${T}`;
     }
 
+    function fontSize(direction){
+
+      switch(direction) {
+      case "up":
+            currfontSize = currfontSize +1
+        break;
+      case "down":
+            currfontSize = currfontSize - 1
+        break;
+      default:
+    }
+
+    writeText()
+
+    };
     document.addEventListener("DOMContentLoaded", updateCanvasSize);
     document.getElementById('canvas_size').addEventListener("change", updateCanvasSize);
 
@@ -220,12 +245,17 @@
       clearCanvas()
       const canvas = document.getElementById('canvas');
       const context = canvas.getContext("2d");
+      const XcentrePoint = canvas.width / 2;
+      const YcentrePoint = canvas.height / 2;
+
+  
 
       var inputText = getText(action);
 
-      context.font = "36px sans-serif";
-      context.textAlign = "centre"
-      context.fillText(inputText, 50, 60);
+      context.font = currfontSize + "px sans-serif";
+      context.textAlign = "center";
+      context.textBaseline = "middle";
+      context.fillText(inputText, XcentrePoint, YcentrePoint);
     }
 
     document.getElementById('text_prev').addEventListener('click', async function() {
@@ -243,6 +273,18 @@
     document.getElementById('text_next').addEventListener('click', async function() {
 
     writeText("next");
+
+    });
+
+    document.getElementById('text_font_up').addEventListener('click', async function() {
+
+    fontSize("up");
+
+    });
+
+    document.getElementById('text_font_down').addEventListener('click', async function() {
+
+    fontSize("down");
 
     });
 
@@ -281,6 +323,8 @@
       const canvas = document.getElementById('canvas');
       localStorage.setItem("canvas", canvas.toDataURL());
     });
+
+
     document.getElementById('print').addEventListener('click', async function() {
       const canvas = document.getElementById('canvas');
       const labelType = canvas.labelType || 1;
@@ -288,6 +332,43 @@
       let [data, width, height] = canvasGetImageData(canvas, 0, 0, canvas.width, canvas.height, canvasFlipXY);
       setAsyncResponse(niimbotPrintImage(width, height, data, 1, labelType), "PRINT");
     });
+
+    document.getElementById('print_all').addEventListener('click', async function() {
+      const canvas = document.getElementById('canvas');
+      const labelType = canvas.labelType || 1;
+
+      var inputText = document.getElementById("textInput").value;
+
+      const inputTextLines = inputText.split(/\r?\n/);
+
+      let numOfLines = inputTextLines.length
+
+      while (numOfLines > 0){
+          currTextLine = numOfLines -1
+          await writeText()
+
+          let [data, width, height] = canvasGetImageData(canvas, 0, 0, canvas.width, canvas.height, canvasFlipXY);
+          
+          printJob = {
+            "data" : data,
+            "width" : width,
+            "height" : height
+          }
+
+          printJOBS.push(printJob)
+          
+          numOfLines = numOfLines -1
+      }
+
+      await checkQueueForNext()
+      
+    });
+
+
+
+
+
+
     document.getElementById('clear_log').addEventListener('click', async function() {
       document.getElementById('log').textContent = '';
     });

@@ -1,4 +1,5 @@
 var currTextLine = 0
+var currfontSize = 36
 
 
 function toResponseString(data) {
