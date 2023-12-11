@@ -1,3 +1,6 @@
+var currTextLine = 0
+
+
 function toResponseString(data) {
   if (typeof data === 'string' || data instanceof String)
     return data;

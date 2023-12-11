@@ -56,7 +56,9 @@
     </select>
     <button id="clear_canvas">Clear</button>
     <button id="draw_pattern">Pattern</button>
+    <button id="text_prev">  &lt;&lt; </button>
     <button id="write_text">Write Text</button>
+    <button id="text_next">  &gt;&gt; </button>
     <button id="save_canvas">Save</button>
     <button id="print" class="on_connected">Print</button>
   </h3>
@@ -95,6 +97,13 @@
     }
 
     document.addEventListener("DOMContentLoaded", _ => updateConnected());
+
+    function clearCanvas(){
+      const canvas = document.getElementById('canvas');
+      const context = canvas.getContext('2d');
+      context.setTransform(1, 0, 0, 1, 0, 0);
+      context.clearRect(0, 0, canvas.width, canvas.height);
+    }
 
     function updateCanvasSize() {
       const [w_mm, h_mm, t] = document.getElementById('canvas_size').value.split('x');
@@ -144,10 +153,7 @@
       setAsyncResponse(niimbotGetInfo(), "INFO");
     });
     document.getElementById('clear_canvas').addEventListener('click', function() {
-      const canvas = document.getElementById('canvas');
-      const context = canvas.getContext('2d');
-      context.setTransform(1, 0, 0, 1, 0, 0);
-      context.clearRect(0, 0, canvas.width, canvas.height);
+      clearCanvas();
     });
     document.getElementById('draw_pattern').addEventListener('click', async function() {
       const canvas = document.getElementById('canvas');
@@ -173,37 +179,74 @@
       
 
     });
-    document.getElementById('write_text').addEventListener('click', async function() {
+
+    function getText(action){
+
+    console.log(currTextLine);
+
+      var inputText = document.getElementById("textInput").value;
+
+    const inputTextLines = inputText.split(/\r?\n/);
+
+      var arraySize = inputTextLines.length
+
+    switch(action) {
+      case "next":
+            currTextLine = currTextLine +1
+        break;
+      case "prev":
+            currTextLine = currTextLine - 1
+        break;
+      default:
+    }
+
+      //Check that there are enough items in array for new line option
+        if (currTextLine >= arraySize - 1){
+          //If the requested text line is going to be past the last line of text return the last line instead
+          currTextLine = arraySize - 1;
+          } 
+
+      //Check that going to a previous line isn't going to make the array value negative
+      if (currTextLine < 0){
+        //If the requested text line is going to make the array value negative, return the first line
+        currTextLine = 0;
+      } 
+
+    return inputTextLines[currTextLine]
+
+    };
+
+    async function writeText(action){
+      clearCanvas()
       const canvas = document.getElementById('canvas');
       const context = canvas.getContext("2d");
 
-      var inputText = document.getElementById("textInput").value;
+      var inputText = getText(action);
 
       context.font = "36px sans-serif";
       context.textAlign = "centre"
       context.fillText(inputText, 50, 60);
+    }
 
+    document.getElementById('text_prev').addEventListener('click', async function() {
 
-      /* const image = context.getImageData(0, 0, canvas.width, canvas.height);
-
-      context.clearRect(0, 0, canvas.width, canvas.height);
-
-      var off = 0;
-
-      for (let y = 0; y < image.height; y++) {
-        for (let x = 0; x < image.width; x++, off += 4) {
-          var color = (Math.floor(x/16) % 2) ^ (Math.floor(y/16) % 2);
-          image.data[off] = color ? 255 : 0;
-          image.data[off + 1] = color ? 255 : 0;
-          image.data[off + 2] = color ? 255 : 0;
-          image.data[off + 3] = 255;
-        }
-      }
-
-      context.putImageData(image, 0, 0);
-      */
+    writeText("prev");
 
     });
+
+    document.getElementById('write_text').addEventListener('click', async function() {
+
+      writeText();
+
+    });
+
+    document.getElementById('text_next').addEventListener('click', async function() {
+
+    writeText("next");
+
+    });
+
+
     function canvasGetImageData(canvas, x, y, w, h, flipXY = false) {
       const context = canvas.getContext("2d");
       const image = context.getImageData(x, y, w, h);
